@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>পার্কিং লাগবে</title>
+    <!-- Tailwind CSS and DaisyUI CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        parkingOrange: '#f39c12',
+                    },
+                    animation: {
+                        'ken-burns': 'kenBurns 30s ease-in-out infinite alternate',
+                        'fade-in': 'fadeIn 1.2s ease-out',
+                    },
+                    keyframes: {
+                        kenBurns: {
+                            '0%': { transform: 'scale(1) translate(0, 0)' },
+                            '100%': { transform: 'scale(1.1) translate(-2%, -1%)' },
+                        },
+                        fadeIn: {
+                            'from': { opacity: '0', transform: 'translateY(20px)' },
+                            'to': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    },
+                    backgroundImage: {
+                        'parking-pattern': "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+PHBhdGggZmlsbD0iI2ZmZmZmZiIgZmlsbC1vcGFjaXR5PSIwLjEiIGQ9Ik0xMSAxOGMzLjg2NiAwIDctMy4xMzQgNy03cy0zLjEzNC03LTctNy03IDMuMTM0LTcgNyAzLjEzNCA3IDcgN3ptNDggMjVjMy44NjYgMCA3LTMuMTM0IDctN3MtMy4xMzQtNy03LTctNyAzLjEzNC03IDcgMy4xMzQgNyA3IDd6bS00My03YzEuNjU3IDAgMy0xLjM0MyAzLTNzLTEuMzQzLTMtMy0zLTMgMS4zNDMtMyAzIDEuMzQzIDMgMyAzem02MyAzMWMxLjY1NyAwIDMtMS4zNDMgMy0zcy0xLjM0My0zLTMtMy0zIDEuMzQzLTMgMyAxLjM0MyAzIDMgM3pNMzQgOTBjMS42NTcgMCAzLTEuMzQzIDMtM3MtMS4zNDMtMy0zLTMtMyAxLjM0My0zIDMgMS4zNDMgMyAzIDN6bTU2LTc2YzEuNjU3IDAgMy0xLjM0MyAzLTNzLTEuMzQzLTMtMy0zLTMgMS4zNDMtMyAzIDEuMzQzIDMgMyAzek0xMiA4NmMyLjIxIDAgNC0xLjc5IDQtNHMtMS43OS00LTQtNC00IDEuNzktNCA0IDEuNzkgNCA0IDR6bTI4LTY1YzIuMjEgMCA0LTEuNzkgNC00cy0xLjc5LTQtNC00LTQgMS43OS00IDQgMS43OSA0IDQgNHptMjMtMTFjMi43NiAwIDUtMi4yNCA1LTVzLTIuMjQtNS01LTUtNSAyLjI0LTUgNSAyLjI0IDUgNSA1em0tNiA2MGMyLjIxIDAgNC0xLjc5IDQtNHMtMS43OS00LTQtNC00IDEuNzktNCA0IDEuNzkgNCA0IDR6bTI5IDIyYzIuNzYgMCA1LTIuMjQgNS01cy0yLjI0LTUtNS01LTUgMi4yNC01IDUgMi4yNCA1IDUgNXpNMzIgNjNjMi43NiAwIDUtMi4yNCA1LTVzLTIuMjQtNS01LTUtNSAyLjI0LTUgNSAyLjI0IDUgNSA1em01Ny0xM2MyLjc2IDAgNS0yLjI0IDUtNXMtMi4yNC01LTUtNS01IDIuMjQtNSA1IDIuMjQgNSA1IDV6bS05LTIxYzEuMTA1IDAgMi0uODk1IDItMnMtLjg5NS0yLTItMi0yIC44OTUtMiAyIC44OTUgMiAyIDJ6TTYwIDkxYzEuMTA1IDAgMi0uODk1IDItMnMtLjg5NS0yLTItMi0yIC44OTUtMiAyIC44OTUgMiAyIDJ6TTM1IDQxYzEuMTA1IDAgMi0uODk1IDItMnMtLjg5NS0yLTItMi0yIC44OTUtMiAyIC44OTUgMiAyIDJ6TTEyIDYwYzEuMTA1IDAgMi0uODk1IDItMnMtLjg5NS0yLTItMi0yIC44OTUtMiAyIC44OTUgMiAyIDJ6Ij48L3BhdGg+PC9zdmc+')",
+                    }
+                }
+            },
+            daisyui: {
+                themes: ["light"],
+            },
+        }
+    </script>
+    <style>
+        /* Custom styles that are difficult to achieve with Tailwind alone */
+        .bg-blur {
+            backdrop-filter: blur(10px);
+        }
+        
+        .input-blur {
+            backdrop-filter: blur(5px);
+        }
+        
+        .sidebar-pattern {
+            position: relative;
+        }
+        
+        .sidebar-pattern::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+PHBhdGggZmlsbD0iI2ZmZmZmZiIgZmlsbC1vcGFjaXR5PSIwLjEiIGQ9Ik0xMSAxOGMzLjg2NiAwIDctMy4xMzQgNy03cy0zLjEzNC03LTctNy03IDMuMTM0LTcgNyAzLjEzNCA3IDcgN3ptNDggMjVjMy44NjYgMCA3LTMuMTM0IDctN3MtMy4xMzQtNy03LTctNyAzLjEzNC03IDcgMy4xMzQgNyA3IDd6bS00My03YzEuNjU3IDAgMy0xLjM0MyAzLTNzLTEuMzQzLTMtMy0zLTMgMS4zNDMtMyAzIDEuMzQzIDMgMyAzem02MyAzMWMxLjY1NyAwIDMtMS4zNDMgMy0zcy0xLjM0My0zLTMtMy0zIDEuMzQzLTMgMyAxLjM0MyAzIDMgM3pNMzQgOTBjMS42NTcgMCAzLTEuMzQzIDMtM3MtMS4zNDMtMy0zLTMtMyAxLjM0My0zIDMgMS4zNDMgMyAzIDN6bTU2LTc2YzEuNjU3IDAgMy0xLjM0MyAzLTNzLTEuMzQzLTMtMy0zLTMgMS4zNDMtMyAzIDEuMzQzIDMgMyAzek0xMiA4NmMyLjIxIDAgNC0xLjc5IDQtNHMtMS43OS00LTQtNC00IDEuNzktNCA0IDEuNzkgNCA0IDR6bTI4LTY1YzIuMjEgMCA0LTEuNzkgNC00cy0xLjc5LTQtNC00LTQgMS43OS00IDQgMS43OSA0IDQgNHptMjMtMTFjMi43NiAwIDUtMi4yNCA1LTVzLTIuMjQtNS01LTUtNSAyLjI0LTUgNSAyLjI0IDUgNSA1em0tNiA2MGMyLjIxIDAgNC0xLjc5IDQtNHMtMS43OS00LTQtNC00IDEuNzktNCA0IDEuNzkgNCA0IDR6bTI5IDIyYzIuNzYgMCA1LTIuMjQgNS01cy0yLjI0LTUtNS01LTUgMi4yNC01IDUgMi4yNCA1IDUgNXpNMzIgNjNjMi43NiAwIDUtMi4yNCA1LTVzLTIuMjQtNS01LTUtNSAyLjI0LTUgNSAyLjI0IDUgNSA1em01Ny0xM2MyLjc2IDAgNS0yLjI0IDUtNXMtMi4yNC01LTUtNS01IDIuMjQtNSA1IDIuMjQgNSA1IDV6bS05LTIxYzEuMTA1IDAgMi0uODk1IDItMnMtLjg5NS0yLTItMi0yIC44OTUtMiAyIC44OTUgMiAyIDJ6TTYwIDkxYzEuMTA1IDAgMi0uODk1IDItMnMtLjg5NS0yLTItMi0yIC44OTUtMiAyIC44OTUgMiAyIDJ6TTM1IDQxYzEuMTA1IDAgMi0uODk1IDItMnMtLjg5NS0yLTItMi0yIC44OTUtMiAyIC44OTUgMiAyIDJ6TTEyIDYwYzEuMTA1IDAgMi0uODk1IDItMnMtLjg5NS0yLTItMi0yIC44OTUtMiAyIC44OTUgMiAyIDJ6Ij48L3BhdGg+PC9zdmc+');
+            opacity: 0.1;
+            z-index: 0;
+        }
+        
+        .parking-icon {
+            filter: invert(65%) sepia(59%) saturate(1371%) hue-rotate(357deg) brightness(100%) contrast(93%);
+        }
+        
+        .feature-list li::before {
+            content: "✓";
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 800px) {
+            .features-mobile-hidden {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .sidebar-text-mobile-hidden {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body class="h-screen overflow-hidden relative flex">
+    <!-- Animated Background -->
+    <div class="absolute top-0 left-0 w-full h-full bg-cover bg-center filter brightness-[0.7] animate-ken-burns z-[-1]" 
+         style="background-image: url('https://images.unsplash.com/photo-1621929747188-0b4dc28498d2?q=80&w=2072&auto=format&fit=crop')"></div>
+    <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-black/60 to-black/30 z-[-1]"></div>
+    
+    <div class="flex w-[90%] max-w-[1000px] h-[600px] mx-auto my-auto rounded-lg overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.4)] z-[1] animate-fade-in bg-black/20 bg-blur">
+        <!-- Sidebar Section -->
+        <div class="w-2/5 bg-parkingOrange/90 p-10 flex flex-col justify-center relative overflow-hidden sidebar-pattern">
+            <div class="text-white z-[1]">
+                <div class="text-center mb-10">
+                    <div class="w-24 h-24 bg-white rounded-full inline-flex justify-center items-center mb-5 shadow-lg overflow-hidden p-5">
+                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0iZmVhdGhlciBmZWF0aGVyLXBhcmtpbmciPjxyZWN0IHg9IjMiIHk9IjMiIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgcng9IjIiIHJ5PSIyIj48L3JlY3Q+PHBhdGggZD0iTTkgMThWNmg0LjVhMi41IDIuNSAwIDAgMSAwIDVIOSI+PC9wYXRoPjwvc3ZnPg==" 
+                             alt="Parking Icon" class="w-full h-full object-contain parking-icon">
+                    </div>
+                    <h1 class="text-white text-2xl font-bold mb-5 text-shadow shadow-black/20">পার্কিং লাগবে</h1>
+                </div>
+                <p class="text-white/90 text-base leading-relaxed mb-8 sidebar-text-mobile-hidden">Welcome to our advanced parking management system. Secure, efficient, and easy to use for both administrators and customers.</p>
+                <ul class="list-none mt-5 features-mobile-hidden feature-list">
+                    <li class="flex items-center mb-4 text-white">Real-time parking space availability</li>
+                    <li class="flex items-center mb-4 text-white">Automated billing and payment</li>
+                    <li class="flex items-center mb-4 text-white">Reservation system</li>
+                    <li class="flex items-center mb-4 text-white">24/7 customer support</li>
+                    <li class="flex items-center mb-4 text-white">Detailed parking history</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Login Section -->
+        <div class="w-3/5 bg-transparent p-10 flex flex-col justify-center bg-blur">
+            <div class="text-center mb-10">
+                <h2 class="text-white text-2xl font-bold mb- text-shadow shadow-black/30">Account Login</h2>
+            </div>
+            
+            <div class="bg-white/10 rounded-lg p-8 mb-5 shadow-md border border-white/20 bg-blur">
+                <form action="login.php" method="POST">
+                    <div class="mb-6">
+                        <label for="username" class="block mb-2 text-white/90 font-medium text-shadow shadow-black/30">Username</label>
+                        <input type="text" id="username" name="username" placeholder="Enter your username" required
+                               class="input w-full bg-white/15 border-white/30 text-white input-blur focus:border-parkingOrange focus:ring focus:ring-parkingOrange/30 focus:bg-white/20">
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label for="password" class="block mb-2 text-white/90 font-medium text-shadow shadow-black/30">Password</label>
+                        <input type="password" id="password" name="password" placeholder="Enter your password" required
+                               class="input w-full bg-white/15 border-white/30 text-white input-blur focus:border-parkingOrange focus:ring focus:ring-parkingOrange/30 focus:bg-white/20">
+                    </div>
+                    
+                    <div class="flex items-center mb-6">
+                        <input type="checkbox" id="remember" name="remember" class="checkbox checkbox-sm mr-2">
+                        <label for="remember" class="text-white/90 text-sm font-normal">Remember me</label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-block bg-parkingOrange hover:bg-[#e67e22] text-white border-none shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:shadow-md transition-all duration-300">
+                        Login
+                    </button>
+                    
+                    <div class="mt-6 text-center">
+                        <a href="#" class="text-parkingOrange hover:text-[#e67e22] text-sm hover:underline transition-colors duration-300 text-shadow shadow-black/20">
+                            Forgot password?
+                        </a>
+                    </div>
+                    
+                    <div class="relative my-5 text-center">
+                        <div class="absolute inset-0 flex items-center">
+                            <div class="w-full border-t border-white/20"></div>
+                        </div>
+                        <div class="relative">
+                            <span class="bg-transparent px-4 text-white/70 text-xs">OR</span>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <a href="register.html" class="text-parkingOrange hover:text-[#e67e22] text-sm hover:underline transition-colors duration-300 text-shadow shadow-black/20">
+                            Register as new user
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.querySelector('form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const rememberMe = document.getElementById('remember').checked;
+            
+            console.log({ username, password, rememberMe });
+            // Add your login logic here
+            
+            // For demo purposes, you can submit the form
+            // this.submit();
+        });
+    </script>
+</body>
+</html>

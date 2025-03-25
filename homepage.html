@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Parking System - Home</title>
+    <!-- Tailwind CSS and daisyUI -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.3/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Leaflet CSS for maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <!-- Leaflet Geocoder for location search -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#f39c12',
+                        'primary-dark': '#e67e22',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            position: relative;
+        }
+        
+        body::before {
+            content: "";
+            background-image: url('https://images.unsplash.com/photo-1506521781263-d8422e82f27a?q=80&w=2070&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+        }
+        
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: -1;
+        }
+        
+        #map {
+            height: 100%;
+            width: 100%;
+            min-height: 500px;
+        }
+        
+        .parking-marker {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .search-result {
+            background-color: white;
+            border-radius: 0.375rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            position: absolute;
+            z-index: 1000;
+            width: 100%;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .search-result-item {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+        }
+        
+        .search-result-item:hover {
+            background-color: #f3f4f6;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="sticky top-0 z-50 bg-black/50 backdrop-blur-md border-b border-white/20">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="#" class="flex items-center gap-4 text-white">
+                <div class="w-10 h-10 bg-primary rounded-full flex justify-center items-center overflow-hidden">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><path d="M9 18V6h4.5a2.5 2.5 0 0 1 0 5H9"></path></svg>
+                </div>
+                <h1 class="text-xl font-semibold drop-shadow-md">Car Parking System</h1>
+            </a>
+            
+            <nav class="hidden md:block">
+                <ul class="flex gap-8">
+                    <li><a href="#" class="text-white/90 hover:text-primary transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-primary after:transition-all">Home</a></li>
+                    <li><a href="#" class="text-white/90 hover:text-primary transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-primary after:transition-all">Find Parking</a></li>
+                    <li><a href="#" class="text-white/90 hover:text-primary transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-primary after:transition-all">Pricing</a></li>
+                    <li><a href="#" class="text-white/90 hover:text-primary transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-primary after:transition-all">How It Works</a></li>
+                    <li><a href="#" class="text-white/90 hover:text-primary transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-primary after:transition-all">Contact</a></li>
+                </ul>
+            </nav>
+            
+            <div class="hidden md:flex gap-4">
+                <a href="login.html"><button class="btn btn-outline btn-sm text-white border-primary hover:bg-primary hover:border-primary">Login</button></a>
+                <a href="register.html"><button class="btn btn-outline btn-sm text-white border-primary hover:bg-primary hover:border-primary">Register</button></a>
+            </div>
+            
+            <button class="md:hidden btn btn-ghost text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-10">
+        <!-- Hero Section -->
+        <section class="flex flex-col items-center text-center py-16">
+            <h2 class="text-4xl md:text-5xl font-bold text-white mb-5 drop-shadow-md">Find and Reserve Parking Spaces in Real-Time</h2>
+            <p class="text-lg text-white/90 max-w-2xl mb-8">Discover available parking spots, compare prices, and book in advance to save time and money.</p>
+            
+            <div class="w-full max-w-4xl bg-black/50 backdrop-blur-md rounded-xl p-6 md:p-8 border border-white/20 shadow-xl">
+                <form id="searchForm" class="flex flex-col md:flex-row flex-wrap gap-4">
+                    <div class="form-control flex-1 min-w-[200px] relative">
+                        <label class="label">
+                            <span class="label-text text-white">Location</span>
+                        </label>
+                        <input id="locationInput" type="text" placeholder="Enter city, address or landmark" class="input input-bordered bg-white/15 text-white border-white/20 focus:border-primary" autocomplete="off" />
+                        <div id="searchResults" class="search-result"></div>
+                    </div>
+                    
+                    <div class="form-control flex-1 min-w-[200px]">
+                        <label class="label">
+                            <span class="label-text text-white">Date</span>
+                        </label>
+                        <input id="dateInput" type="date" class="input input-bordered bg-white/15 text-white border-white/20 focus:border-primary" />
+                    </div>
+                    
+                    <div class="form-control flex-1 min-w-[200px]">
+                        <label class="label">
+                            <span class="label-text text-white">Time</span>
+                        </label>
+                        <input id="timeInput" type="time" class="input input-bordered bg-white/15 text-white border-white/20 focus:border-primary" />
+                    </div>
+                    
+                    <div class="form-control flex-1 min-w-[200px]">
+                        <label class="label">
+                            <span class="label-text text-white">Duration</span>
+                        </label>
+                        <select class="select select-bordered bg-white/15 text-white border-white/20 focus:border-primary">
+                            <option value="1">1 hour</option>
+                            <option value="2">2 hours</option>
+                            <option value="3">3 hours</option>
+                            <option value="4">4 hours</option>
+                            <option value="day">Full day</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn bg-primary hover:bg-primary-dark text-white border-none w-full md:w-auto mt-4 md:mt-8">Find Parking</button>
+                </form>
+            </div>
+        </section>
+        
+        <!-- Map Section -->
+        <section class="mb-16">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-bold text-white drop-shadow-md">Parking Locations Near You</h2>
+                <button class="btn btn-outline btn-sm text-white border-primary hover:bg-primary hover:border-primary">View All</button>
+            </div>
+            
+            <div class="rounded-xl overflow-hidden border border-white/20 shadow-xl h-[500px]">
+                <div id="map"></div>
+            </div>
+        </section>
+        
+        <!-- Featured Parking -->
+        <section class="mb-16">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-bold text-white drop-shadow-md">Featured Parking Locations</h2>
+                <button class="btn btn-outline btn-sm text-white border-primary hover:bg-primary hover:border-primary">View All</button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Parking Card 1 -->
+                <div class="card bg-black/50 backdrop-blur-md border border-white/20 shadow-xl overflow-hidden transition-all hover:-translate-y-1 hover:shadow-2xl">
+                    <figure class="h-48 overflow-hidden">
+                        <img src="https://placehold.co/600x400" alt="Downtown Garage" class="w-full h-full object-cover transition-transform hover:scale-110" />
+                    </figure>
+                    <div class="card-body">
+                        <h3 class="card-title text-white">Downtown Garage</h3>
+                        <div class="flex items-center gap-2 text-white/90 text-sm mb-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                            123 Main Street, City Center
+                        </div>
+                        <div class="flex justify-between mb-4">
+                            <div class="flex flex-col items-center">
+                                <span class="text-white font-semibold">250</span>
+                                <span class="text-white/70 text-xs">Spaces</span>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <span class="text-white font-semibold">24/7</span>
+                                <span class="text-white/70 text-xs">Hours</span>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <span class="text-white font-semibold">4.8</span>
+                                <span class="text-white/70 text-xs">Rating</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 bg-success rounded-full"></span>
+                                <span class="text-white/90 text-sm">Available (45 spots)</span>
+                            </div>
+                            <div class="text-primary font-semibold">$5/hr</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Parking Card 2 -->
+                <div class="card bg-black/50 backdrop-blur-md border border-white/20 shadow-xl overflow-hidden transition-all hover:-translate-y-1 hover:shadow-2xl">
+                    <figure class="h-48 overflow-hidden">
+                        <img src="https://placehold.co/600x400" alt="West Side Parking" class="w-full h-full object-cover transition-transform hover:scale-110" />
+                    </figure>
+                    <div class="card-body">
+                        <h3 class="card-title text-white">West Side Parking</h3>
+                        <div class="flex items-center gap-2 text-white/90 text-sm mb-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                            456 West Avenue, Business District
+                        </div>
+                        <div class="flex justify-between mb-4">
+                            <div class="flex flex-col items-center">
+                                <span class="text-white font-semibold">180</span>
+                                <span class="text-white/70 text-xs">Spaces</span>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <span class="text-white font-semibold">6-22</span>
+                                <span class="text-white/70 text-xs">Hours</span>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <span class="text-white font-semibold">4.5</span>
+                                <span class="text-white/70 text-xs">Rating</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 bg-warning rounded-full"></span>
+                                <span class="text-white/90 text-sm">Limited (12 spots)</span>
+                            </div>
+                            <div class="text-primary font-semibold">$4/hr</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Parking Card 3 -->
+                <div class="card bg-black/50 backdrop-blur-md border border-white/20 shadow-xl overflow-hidden transition-all hover:-translate-y-1 hover:shadow-2xl">
+                    <figure class="h-48 overflow-hidden">
+                        <img src="https://placehold.co/600x400" alt="Central Station Parking" class="w-full h-full object-cover transition-transform hover:scale-110" />
+                    </figure>
+                    <div class="card-body">
+                        <h3 class="card-title text-white">Central Station Parking</h3>
+                        <div class="flex items-center gap-2 text-white/90 text-sm mb-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                            789 Station Road, Central District
+                        </div>
+                        <div class="flex justify-between mb-4">
+                            <div class="flex flex-col items-center">
+                                <span class="text-white font-semibold">320</span>
+                                <span class="text-white/70 text-xs">Spaces</span>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <span class="text-white font-semibold">24/7</span>
+                                <span class="text-white/70 text-xs">Hours</span>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <span class="text-white font-semibold">4.7</span>
+                                <span class="text-white/70 text-xs">Rating</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 bg-error rounded-full"></span>
+                                <span class="text-white/90 text-sm">Full (0 spots)</span>
+                            </div>
+                            <div class="text-primary font-semibold">$6/hr</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- How It Works -->
+        <section class="bg-black/50 backdrop-blur-md rounded-xl p-8 mb-16 border border-white/20 shadow-xl">
+            <h2 class="text-3xl font-bold text-white mb-8 drop-shadow-md">How It Works</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Step 1 -->
+                <div class="flex flex-col items-center text-center">
+                    <div class="w-16 h-16 bg-primary/20 rounded-full flex justify-center items-center mb-4 border-2 border-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-white mb-2 drop-shadow-md">Search</h3>
+                    <p class="text-white/90 text-sm">Enter your destination, select date and time, and find available parking spots near your location.</p>
+                </div>
+                
+                <!-- Step 2 -->
+                <div class="flex flex-col items-center text-center">
+                    <div class="w-16 h-16 bg-primary/20 rounded-full flex justify-center items-center mb-4 border-2 border-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-white mb-2 drop-shadow-md">Reserve</h3>
+                    <p class="text-white/90 text-sm">Compare prices, view details, and reserve your parking spot in advance with just a few clicks.</p>
+                </div>
+                
+                <!-- Step 3 -->
+                <div class="flex flex-col items-center text-center">
+                    <div class="w-16 h-16 bg-primary/20 rounded-full flex justify-center items-center mb-4 border-2 border-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-white mb-2 drop-shadow-md">Confirm</h3>
+                    <p class="text-white/90 text-sm">Receive your parking confirmation and instructions via email or in the app for easy access.</p>
+                </div>
+                
+                <!-- Step 4 -->
+                <div class="flex flex-col items-center text-center">
+                    <div class="w-16 h-16 bg-primary/20 rounded-full flex justify-center items-center mb-4 border-2 border-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-white mb-2 drop-shadow-md">Park</h3>
+                    <p class="text-white/90 text-sm">Arrive at the parking location, show your confirmation, and enjoy stress-free parking at your destination.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="bg-black/70 backdrop-blur-md border-t border-white/10 pt-16 pb-8">
+        <div class="container mx-auto px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+            <!-- Company Info -->
+            <div>
+                <h3 class="text-white text-lg font-semibold mb-4 pb-2 border-b border-primary w-max">About Us</h3>
+                <ul class="space-y-2">
+                    <li><a href="#" class="text-white/90 hover:text-primary transition-colors flex items-center gap-2">Our Story</a></li>
+                    <li><a href="#" class="text-white/90 hover:text-primary transition-colors flex items-center gap-2">How It Works</a></li>
+                    <li><a href="#" class="text-white/90 hover:text-primary transition-colors flex items-center gap-2">Testimonials</a></li>
+                    <li><a href="#" class="text-white/90 hover:text-primary transition-colors flex items-center gap-2">Press & Media</a></li>
+                    <li><a href="#" class="text-white/90 hover:text-primary transition-colors flex items-center gap-2">Careers</a></li>
+                    <li><a href="#" class="text-white/90 hover:text-primary transition-colors flex items-center gap-2">Partners</a></li>
+                </ul>
+            </div>
+            
+            <!-- Services -->
+            <div>
+                <h3 class="text-white text-lg font-semibold mb-4 pb-2 border-b border-primary w-max">Services</h3>
+                <ul class="space-y-2">
+                    <li><a href="#" class="text-white/90 hover:text-primary transition-colors flex items-center gap-2">Find Parking</a></li>
+                    <li><a href="#" class="text-white/90 hover:text-primary transition-colors flex items-center gap-2">Monthly Passes</a></li>
+                    <li><a href="#" class="text-white/90 hover:text-primary transition-colors flex items-center gap-2">Business Solutions</a></li>
+                    <li><a href="#" class="text-white/90 hover:text-primary transition-colors flex items-center gap-2">Event Parking</a></li>
+                    <li><a href="#" class="text-white/90 hover:text-primary transition-colors flex items-center gap-2">Airport Parking</a></li>
+                    <li><a href="#" class="text-white/90 hover:text-primary transition-colors flex items-center gap-2">Valet Services</a></li>
+                </ul>
+            </div>
+            
+            <!-- Support -->
+            <div>
+                <h3 class="text-white text-lg font-semibold mb-4 pb-2 border-b border-primary w-max">Support</h3>
+                <ul class="space-y-2">
+                    <li><a href="#" class="text-white/90 hover:text-primary transition-colors flex items-center gap-2">Help Center</a></li>
+                    <li><a href="#" class="text-white/90 hover:text-primary transition-colors flex items-center gap-2">FAQs</a></li>
+                    <li><a href="#" class="text-white/90 hover:text-primary transition-colors flex items-center gap-2">Contact Us</a></li>
+                    <li><a href="#" class="text-white/90 hover:text-primary transition-colors flex items-center gap-2">Refund Policy</a></li>
+                    <li><a href="#" class="text-white/90 hover:text-primary transition-colors flex items-center gap-2">Terms of Service</a></li>
+                    <li><a href="#" class="text-white/90 hover:text-primary transition-colors flex items-center gap-2">Privacy Policy</a></li>
+                </ul>
+            </div>
+            
+            <!-- Contact -->
+            <div>
+                <h3 class="text-white text-lg font-semibold mb-4 pb-2 border-b border-primary w-max">Contact Us</h3>
+                <ul class="space-y-4">
+                    <li class="flex items-start gap-3 text-white/90">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0 mt-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                        123 Parking Avenue, City Center, State 12345
+                    </li>
+                    <li class="flex items-start gap-3 text-white/90">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0 mt-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                        (123) 456-7890
+                    </li>
+                    <li class="flex items-start gap-3 text-white/90">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0 mt-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                        support@carparkingsystem.com
+                    </li>
+                </ul>
+                
+                <div class="flex gap-4 mt-6">
+                    <a href="#" class="w-10 h-10 bg-white/10 rounded-full flex justify-center items-center transition-all hover:bg-primary hover:-translate-y-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+                    </a>
+                    <a href="#" class="w-10 h-10 bg-white/10 rounded-full flex justify-center items-center transition-all hover:bg-primary hover:-translate-y-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg>
+                    </a>
+                    <a href="#" class="w-10 h-10 bg-white/10 rounded-full flex justify-center items-center transition-all hover:bg-primary hover:-translate-y-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                    </a>
+                    <a href="#" class="w-10 h-10 bg-white/10 rounded-full flex justify-center items-center transition-all hover:bg-primary hover:-translate-y-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="container mx-auto px-4 mt-10 pt-6 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p class="text-white/90 text-sm">&copy; 2025 Car Parking System. All rights reserved.</p>
+            <div class="flex gap-6">
+                <a href="#" class="text-white/90 text-sm hover:text-primary transition-colors">Privacy Policy</a>
+                <a href="#" class="text-white/90 text-sm hover:text-primary transition-colors">Terms of Service</a>
+                <a href="#" class="text-white/90 text-sm hover:text-primary transition-colors">Cookie Policy</a>
+                <a href="#" class="text-white/90 text-sm hover:text-primary transition-colors">Sitemap</a>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Leaflet JS for maps -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Leaflet Geocoder for location search -->
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    <script>
+        // Initialize the map with Dhaka, Bangladesh as the default location
+        // Coordinates for Dhaka: 23.8103, 90.4125
+        let map;
+        let markers = [];
+        let selectedLocation = null;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set current date
+            const dateInput = document.getElementById('dateInput');
+            const today = new Date();
+            const formattedDate = today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+            dateInput.value = formattedDate;
+            
+            // Set current time + 1 hour
+            const timeInput = document.getElementById('timeInput');
+            const nextHour = new Date();
+            nextHour.setHours(nextHour.getHours() + 1);
+            const hours = String(nextHour.getHours()).padStart(2, '0');
+            const minutes = String(nextHour.getMinutes()).padStart(2, '0');
+            timeInput.value = `${hours}:${minutes}`;
+            
+            // Initialize map
+            initMap();
+            
+            // Setup location search
+            setupLocationSearch();
+            
+            // Handle form submission
+            document.getElementById('searchForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                if (selectedLocation) {
+                    // If a location was selected from the dropdown
+                    searchSelectedLocation();
+                } else {
+                    // Otherwise use the text input value
+                    const location = document.getElementById('locationInput').value;
+                    if (location) {
+                        searchLocation(location);
+                    }
+                }
+            });
+        });
+        
+        function initMap() {
+            // Initialize map centered on Dhaka, Bangladesh
+            map = L.map('map').setView([23.8103, 90.4125], 13);
+            
+            // Add OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            
+            // Add some default parking locations in Dhaka
+            const dhakaParkingLocations = [
+                {
+                    name: "Bashundhara City Parking",
+                    lat: 23.7508,
+                    lng: 90.3928,
+                    spaces: 300,
+                    available: 120,
+                    price: "৳50/hr"
+                },
+                {
+                    name: "Jamuna Future Park Parking",
+                    lat: 23.8142,
+                    lng: 90.4252,
+                    spaces: 500,
+                    available: 200,
+                    price: "৳60/hr"
+                },
+                {
+                    name: "Dhaka Airport Parking",
+                    lat: 23.8513,
+                    lng: 90.4008,
+                    spaces: 400,
+                    available: 75,
+                    price: "৳100/hr"
+                },
+                {
+                    name: "Gulshan Circle 2 Parking",
+                    lat: 23.7968,
+                    lng: 90.4137,
+                    spaces: 150,
+                    available: 30,
+                    price: "৳80/hr"
+                },
+                {
+                    name: "Dhanmondi Lake Parking",
+                    lat: 23.7465,
+                    lng: 90.3751,
+                    spaces: 100,
+                    available: 45,
+                    price: "৳40/hr"
+                }
+            ];
+            
+            // Add markers for Dhaka parking locations
+            addParkingMarkers(dhakaParkingLocations);
+        }
+        
+        function setupLocationSearch() {
+            const locationInput = document.getElementById('locationInput');
+            const searchResults = document.getElementById('searchResults');
+            
+            // Detailed locations database for Dhaka
+            const detailedLocations = {
+                // Mirpur sections
+                "mirpur 1": { lat: 23.8004, lng: 90.3654, name: "Mirpur 1, Dhaka" },
+                "mirpur 2": { lat: 23.8074, lng: 90.3600, name: "Mirpur 2, Dhaka" },
+                "mirpur 6": { lat: 23.8187, lng: 90.3611, name: "Mirpur 6, Dhaka" },
+                "mirpur 10": { lat: 23.8223, lng: 90.3698, name: "Mirpur 10, Dhaka" },
+                "mirpur 11": { lat: 23.8280, lng: 90.3750, name: "Mirpur 11, Dhaka" },
+                "mirpur 12": { lat: 23.8330, lng: 90.3820, name: "Mirpur 12, Dhaka" },
+                "mirpur 13": { lat: 23.8350, lng: 90.3880, name: "Mirpur 13, Dhaka" },
+                "mirpur 14": { lat: 23.8380, lng: 90.3950, name: "Mirpur 14, Dhaka" },
+                
+                // Gulshan sections
+                "gulshan 1": { lat: 23.7828, lng: 90.4150, name: "Gulshan 1, Dhaka" },
+                "gulshan 2": { lat: 23.7925, lng: 90.4078, name: "Gulshan 2, Dhaka" },
+                "gulshan circle 1": { lat: 23.7828, lng: 90.4150, name: "Gulshan Circle 1, Dhaka" },
+                "gulshan circle 2": { lat: 23.7925, lng: 90.4078, name: "Gulshan Circle 2, Dhaka" },
+                
+                // Dhanmondi sections
+                "dhanmondi 1": { lat: 23.7380, lng: 90.3742, name: "Dhanmondi 1, Dhaka" },
+                "dhanmondi 2": { lat: 23.7400, lng: 90.3760, name: "Dhanmondi 2, Dhaka" },
+                "dhanmondi 3": { lat: 23.7420, lng: 90.3780, name: "Dhanmondi 3, Dhaka" },
+                "dhanmondi 4": { lat: 23.7440, lng: 90.3800, name: "Dhanmondi 4, Dhaka" },
+                "dhanmondi 5": { lat: 23.7460, lng: 90.3820, name: "Dhanmondi 5, Dhaka" },
+                "dhanmondi 6": { lat: 23.7480, lng: 90.3840, name: "Dhanmondi 6, Dhaka" },
+                "dhanmondi 7": { lat: 23.7500, lng: 90.3860, name: "Dhanmondi 7, Dhaka" },
+                "dhanmondi 8": { lat: 23.7520, lng: 90.3880, name: "Dhanmondi 8, Dhaka" },
+                "dhanmondi 9": { lat: 23.7540, lng: 90.3900, name: "Dhanmondi 9, Dhaka" },
+                "dhanmondi 10": { lat: 23.7560, lng: 90.3920, name: "Dhanmondi 10, Dhaka" },
+                "dhanmondi 15": { lat: 23.7461, lng: 90.3742, name: "Dhanmondi 15, Dhaka" },
+                "dhanmondi 27": { lat: 23.7550, lng: 90.3730, name: "Dhanmondi 27, Dhaka" },
+                
+                // Uttara sectors
+                "uttara sector 1": { lat: 23.8659, lng: 90.3895, name: "Uttara Sector 1, Dhaka" },
+                "uttara sector 3": { lat: 23.8659, lng: 90.3995, name: "Uttara Sector 3, Dhaka" },
+                "uttara sector 4": { lat: 23.8659, lng: 90.4095, name: "Uttara Sector 4, Dhaka" },
+                "uttara sector 5": { lat: 23.8759, lng: 90.3895, name: "Uttara Sector 5, Dhaka" },
+                "uttara sector 6": { lat: 23.8759, lng: 90.3995, name: "Uttara Sector 6, Dhaka" },
+                "uttara sector 7": { lat: 23.8759, lng: 90.4095, name: "Uttara Sector 7, Dhaka" },
+                "uttara sector 10": { lat: 23.8859, lng: 90.3895, name: "Uttara Sector 10, Dhaka" },
+                "uttara sector 11": { lat: 23.8859, lng: 90.3995, name: "Uttara Sector 11, Dhaka" },
+                "uttara sector 12": { lat: 23.8859, lng: 90.4095, name: "Uttara Sector 12, Dhaka" },
+                
+                // Banani sections
+                "banani": { lat: 23.7937, lng: 90.4066, name: "Banani, Dhaka" },
+                "banani dohs": { lat: 23.8037, lng: 90.4066, name: "Banani DOHS, Dhaka" },
+                
+                // Mohammadpur areas
+                "mohammadpur": { lat: 23.7578, lng: 90.3595, name: "Mohammadpur, Dhaka" },
+                "mohammadpur adabor": { lat: 23.7678, lng: 90.3595, name: "Mohammadpur Adabor, Dhaka" },
+                "mohammadpur shia mosque": { lat: 23.7578, lng: 90.3695, name: "Mohammadpur Shia Mosque, Dhaka" },
+                
+                // Other major areas
+                "motijheel": { lat: 23.7333, lng: 90.4173, name: "Motijheel, Dhaka" },
+                "shahbag": { lat: 23.7394, lng: 90.3967, name: "Shahbag, Dhaka" },
+                "farmgate": { lat: 23.7573, lng: 90.3878, name: "Farmgate, Dhaka" },
+                "tejgaon": { lat: 23.7604, lng: 90.3944, name: "Tejgaon, Dhaka" },
+                "badda": { lat: 23.7805, lng: 90.4265, name: "Badda, Dhaka" },
+                "rampura": { lat: 23.7635, lng: 90.4214, name: "Rampura, Dhaka" },
+                "khilgaon": { lat: 23.7465, lng: 90.4265, name: "Khilgaon, Dhaka" },
+                "malibagh": { lat: 23.7425, lng: 90.4150, name: "Malibagh, Dhaka" },
+                "bashundhara": { lat: 23.8200, lng: 90.4350, name: "Bashundhara, Dhaka" },
+                "cantonment": { lat: 23.8330, lng: 90.3950, name: "Cantonment, Dhaka" },
+                "airport": { lat: 23.8513, lng: 90.4008, name: "Airport, Dhaka" },
+                "new market": { lat: 23.7330, lng: 90.3830, name: "New Market, Dhaka" },
+                "elephant road": { lat: 23.7380, lng: 90.3850, name: "Elephant Road, Dhaka" },
+                "science lab": { lat: 23.7390, lng: 90.3830, name: "Science Lab, Dhaka" },
+                "green road": { lat: 23.7500, lng: 90.3850, name: "Green Road, Dhaka" },
+                "panthapath": { lat: 23.7510, lng: 90.3880, name: "Panthapath, Dhaka" },
+                "karwan bazar": { lat: 23.7530, lng: 90.3930, name: "Karwan Bazar, Dhaka" },
+                "banglamotor": { lat: 23.7470, lng: 90.3950, name: "Banglamotor, Dhaka" },
+                "kakrail": { lat: 23.7380, lng: 90.4050, name: "Kakrail, Dhaka" },
+                "paltan": { lat: 23.7350, lng: 90.4100, name: "Paltan, Dhaka" },
+                "puran dhaka": { lat: 23.7100, lng: 90.4000, name: "Puran Dhaka (Old Dhaka)" },
+                "lalbagh": { lat: 23.7200, lng: 90.3900, name: "Lalbagh, Dhaka" },
+                "wari": { lat: 23.7150, lng: 90.4150, name: "Wari, Dhaka" },
+                "jatrabari": { lat: 23.7100, lng: 90.4350, name: "Jatrabari, Dhaka" },
+                "keraniganj": { lat: 23.7000, lng: 90.3800, name: "Keraniganj, Dhaka" },
+                "kamrangirchar": { lat: 23.7050, lng: 90.3650, name: "Kamrangirchar, Dhaka" },
+                "shyamoli": { lat: 23.7700, lng: 90.3650, name: "Shyamoli, Dhaka" },
+                "kallyanpur": { lat: 23.7800, lng: 90.3550, name: "Kallyanpur, Dhaka" },
+                "gabtoli": { lat: 23.7850, lng: 90.3450, name: "Gabtoli, Dhaka" },
+                "mohakhali": { lat: 23.7780, lng: 90.4050, name: "Mohakhali, Dhaka" },
+                "banasree": { lat: 23.7620, lng: 90.4350, name: "Banasree, Dhaka" },
+                "aftabnagar": { lat: 23.7700, lng: 90.4400, name: "Aftabnagar, Dhaka" },
+                "khilkhet": { lat: 23.8300, lng: 90.4250, name: "Khilkhet, Dhaka" },
+                "nikunja": { lat: 23.8350, lng: 90.4200, name: "Nikunja, Dhaka" },
+                "kuril": { lat: 23.8250, lng: 90.4300, name: "Kuril, Dhaka" },
+                "baridhara": { lat: 23.8100, lng: 90.4200, name: "Baridhara, Dhaka" },
+                "baridhara dohs": { lat: 23.8150, lng: 90.4250, name: "Baridhara DOHS, Dhaka" },
+                "niketon": { lat: 23.7750, lng: 90.4150, name: "Niketon, Dhaka" },
+                "bailey road": { lat: 23.7400, lng: 90.4000, name: "Bailey Road, Dhaka" },
+                "eskaton": { lat: 23.7450, lng: 90.4000, name: "Eskaton, Dhaka" },
+                "moghbazar": { lat: 23.7500, lng: 90.4100, name: "Moghbazar, Dhaka" },
+                "mouchak": { lat: 23.7480, lng: 90.4150, name: "Mouchak, Dhaka" },
+                "rajarbagh": { lat: 23.7400, lng: 90.4200, name: "Rajarbagh, Dhaka" },
+                "gopibagh": { lat: 23.7300, lng: 90.4250, name: "Gopibagh, Dhaka" },
+                "tikatuli": { lat: 23.7250, lng: 90.4200, name: "Tikatuli, Dhaka" },
+                "sayedabad": { lat: 23.7200, lng: 90.4300, name: "Sayedabad, Dhaka" },
+                "postogola": { lat: 23.7000, lng: 90.4250, name: "Postogola, Dhaka" },
+                "demra": { lat: 23.7200, lng: 90.4500, name: "Demra, Dhaka" },
+                "jurain": { lat: 23.7000, lng: 90.4400, name: "Jurain, Dhaka" },
+                "shantinagar": { lat: 23.7350, lng: 90.4100, name: "Shantinagar, Dhaka" },
+                "segunbagicha": { lat: 23.7380, lng: 90.4080, name: "Segunbagicha, Dhaka" },
+                "ramna": { lat: 23.7350, lng: 90.4000, name: "Ramna, Dhaka" },
+                "shahjahanpur": { lat: 23.7450, lng: 90.4200, name: "Shahjahanpur, Dhaka" },
+                "mugda": { lat: 23.7300, lng: 90.4300, name: "Mugda, Dhaka" },
+                "basabo": { lat: 23.7400, lng: 90.4350, name: "Basabo, Dhaka" },
+                "sabujbagh": { lat: 23.7350, lng: 90.4300, name: "Sabujbagh, Dhaka" },
+                "khilgaon flyover": { lat: 23.7500, lng: 90.4300, name: "Khilgaon Flyover, Dhaka" },
+                "meradia": { lat: 23.7550, lng: 90.4350, name: "Meradia, Dhaka" },
+                "goran": { lat: 23.7600, lng: 90.4300, name: "Goran, Dhaka" },
+                "madartek": { lat: 23.7650, lng: 90.4400, name: "Madartek, Dhaka" },
+                "rampura bridge": { lat: 23.7650, lng: 90.4250, name: "Rampura Bridge, Dhaka" },
+                "badda link road": { lat: 23.7750, lng: 90.4300, name: "Badda Link Road, Dhaka" },
+                "natun bazar": { lat: 23.7950, lng: 90.4250, name: "Natun Bazar, Dhaka" },
+                "uttar badda": { lat: 23.7850, lng: 90.4300, name: "Uttar Badda, Dhaka" },
+                "shahjadpur": { lat: 23.7700, lng: 90.4200, name: "Shahjadpur, Dhaka" },
+                "gulshan 1 circle": { lat: 23.7828, lng: 90.4150, name: "Gulshan 1 Circle, Dhaka" },
+                "gulshan 2 circle": { lat: 23.7925, lng: 90.4078, name: "Gulshan 2 Circle, Dhaka" },
+                "gulshan avenue": { lat: 23.7880, lng: 90.4120, name: "Gulshan Avenue, Dhaka" },
+                "banani 11": { lat: 23.7937, lng: 90.4066, name: "Banani 11, Dhaka" },
+                "kemal ataturk avenue": { lat: 23.7950, lng: 90.4050, name: "Kemal Ataturk Avenue, Dhaka" },
+                "chairman bari": { lat: 23.8000, lng: 90.4000, name: "Chairman Bari, Dhaka" },
+                "kakoli": { lat: 23.7980, lng: 90.4000, name: "Kakoli, Dhaka" },
+                "wireless gate": { lat: 23.7950, lng: 90.3950, name: "Wireless Gate, Dhaka" },
+                "mohakhali flyover": { lat: 23.7780, lng: 90.4050, name: "Mohakhali Flyover, Dhaka" },
+                "tejgaon industrial area": { lat: 23.7650, lng: 90.4000, name: "Tejgaon Industrial Area, Dhaka" },
+                "nabisco": { lat: 23.7700, lng: 90.3950, name: "Nabisco, Dhaka" },
+                "mohammadpur bus stand": { lat: 23.7578, lng: 90.3595, name: "Mohammadpur Bus Stand, Dhaka" },
+                "asad gate": { lat: 23.7600, lng: 90.3700, name: "Asad Gate, Dhaka" },
+                "khamarbari": { lat: 23.7620, lng: 90.3750, name: "Khamarbari, Dhaka" },
+                "agargaon": { lat: 23.7780, lng: 90.3800, name: "Agargaon, Dhaka" },
+                "iba": { lat: 23.7300, lng: 90.3850, name: "IBA, Dhaka" },
+                "nilkhet": { lat: 23.7320, lng: 90.3830, name: "Nilkhet, Dhaka" },
+                "azimpur": { lat: 23.7280, lng: 90.3800, name: "Azimpur, Dhaka" },
+                "dhaka university": { lat: 23.7340, lng: 90.3950, name: "Dhaka University, Dhaka" },
+                "curzon hall": { lat: 23.7280, lng: 90.4000, name: "Curzon Hall, Dhaka" },
+                "fulbaria": { lat: 23.7250, lng: 90.3950, name: "Fulbaria, Dhaka" },
+                "gulistan": { lat: 23.7230, lng: 90.4100, name: "Gulistan, Dhaka" },
+                "chankharpool": { lat: 23.7200, lng: 90.4000, name: "Chankharpool, Dhaka" },
+                "bakshi bazar": { lat: 23.7180, lng: 90.3950, name: "Bakshi Bazar, Dhaka" },
+                "nawabpur": { lat: 23.7150, lng: 90.4050, name: "Nawabpur, Dhaka" },
+                "sadarghat": { lat: 23.7050, lng: 90.4100, name: "Sadarghat, Dhaka" },
+                "islampur": { lat: 23.7100, lng: 90.4050, name: "Islampur, Dhaka" },
+                "nayabazar": { lat: 23.7120, lng: 90.4080, name: "Nayabazar, Dhaka" },
+                "bangshal": { lat: 23.7150, lng: 90.4000, name: "Bangshal, Dhaka" },
+                "tantibazar": { lat: 23.7100, lng: 90.4020, name: "Tantibazar, Dhaka" },
+                "sutrapur": { lat: 23.7080, lng: 90.4150, name: "Sutrapur, Dhaka" },
+                "gendaria": { lat: 23.7000, lng: 90.4200, name: "Gendaria, Dhaka" },
+                "narinda": { lat: 23.7100, lng: 90.4180, name: "Narinda, Dhaka" },
+                "gandaria": { lat: 23.7050, lng: 90.4220, name: "Gandaria, Dhaka" },
+                "dhaka medical college": { lat: 23.7260, lng: 90.3980, name: "Dhaka Medical College, Dhaka" },
+                "bangladesh bank": { lat: 23.7280, lng: 90.4120, name: "Bangladesh Bank, Dhaka" },
+                "press club": { lat: 23.7320, lng: 90.4070, name: "Press Club, Dhaka" },
+                "high court": { lat: 23.7300, lng: 90.4050, name: "High Court, Dhaka" },
+                "supreme court": { lat: 23.7310, lng: 90.4060, name: "Supreme Court, Dhaka" },
+                "secretariat": { lat: 23.7330, lng: 90.4080, name: "Secretariat, Dhaka" },
+                "parliament": { lat: 23.7620, lng: 90.3780, name: "Parliament, Dhaka" }
+            };
+            
+            // Handle input changes for search suggestions
+            locationInput.addEventListener('input', function() {
+                const query = this.value.toLowerCase().trim();
+                
+                if (query.length < 2) {
+                    searchResults.style.display = 'none';
+                    return;
+                }
+                
+                // Filter locations based on input
+                const filteredLocations = Object.entries(detailedLocations)
+                    .filter(([key]) => key.includes(query))
+                    .map(([key, location]) => location);
+                
+                // Display search results
+                if (filteredLocations.length > 0) {
+                    searchResults.innerHTML = '';
+                    filteredLocations.forEach(location => {
+                        const resultItem = document.createElement('div');
+                        resultItem.className = 'search-result-item';
+                        resultItem.textContent = location.name;
+                        resultItem.addEventListener('click', function() {
+                            locationInput.value = location.name;
+                            selectedLocation = location;
+                            searchResults.style.display = 'none';
+                        });
+                        searchResults.appendChild(resultItem);
+                    });
+                    searchResults.style.display = 'block';
+                } else {
+                    searchResults.style.display = 'none';
+                }
+            });
+            
+            // Hide search results when clicking outside
+            document.addEventListener('click', function(e) {
+                if (e.target !== locationInput && e.target !== searchResults) {
+                    searchResults.style.display = 'none';
+                }
+            });
+        }
+        
+        function searchSelectedLocation() {
+            if (!selectedLocation) return;
+            
+            // Center map on the selected location
+            map.setView([selectedLocation.lat, selectedLocation.lng], 15);
+            
+            // Create a temporary marker for the searched location
+            const searchMarker = L.marker([selectedLocation.lat, selectedLocation.lng]).addTo(map);
+            searchMarker.bindPopup(`<b>${selectedLocation.name}</b>`).openPopup();
+            
+            // Generate random parking locations around the searched location
+            const nearbyParkingLocations = generateNearbyParkingLocations(selectedLocation.lat, selectedLocation.lng, 5);
+            
+            // Add markers for the nearby parking locations
+            addParkingMarkers(nearbyParkingLocations);
+            
+            // Remove the search marker after a short delay
+            setTimeout(() => {
+                map.removeLayer(searchMarker);
+            }, 3000);
+            
+            // Reset selected location
+            selectedLocation = null;
+        }
+        
+        function addParkingMarkers(locations) {
+            // Clear existing markers
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
+            
+            // Custom marker icon
+            const parkingIcon = L.divIcon({
+                className: 'parking-marker',
+                html: `<div class="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white font-bold shadow-md">P</div>`,
+                iconSize: [32, 32],
+                iconAnchor: [16, 16]
+            });
+            
+            // Add new markers
+            locations.forEach(location => {
+                const marker = L.marker([location.lat, location.lng], {icon: parkingIcon}).addTo(map);
+                
+                // Create popup content
+                const popupContent = `
+                    <div class="w-52 p-2">
+                        <h3 class="text-base font-semibold mb-1">${location.name}</h3>
+                        <p class="text-sm mb-1">Spaces: ${location.spaces}</p>
+                        <p class="text-sm mb-1">Available: ${location.available}</p>
+                        <p class="text-sm mb-1">Price: ${location.price}</p>
+                        <button class="w-full mt-2 py-1 px-3 bg-primary text-white rounded text-sm hover:bg-primary-dark">Reserve</button>
+                    </div>
+                `;
+                
+                marker.bindPopup(popupContent);
+                markers.push(marker);
+            });
+        }
+        
+        function searchLocation(query) {
+            // Convert query to lowercase for case-insensitive matching
+            const lowercaseQuery = query.toLowerCase();
+            
+            // Try to find the location in our detailed database
+            let foundLocation = null;
+            
+            // Get all locations from the setupLocationSearch function
+            const locationInput = document.getElementById('locationInput');
+            const searchResults = document.getElementById('searchResults');
+            
+            // Detailed locations database for Dhaka (same as in setupLocationSearch)
+            const detailedLocations = {
+                // Mirpur sections
+                "mirpur 1": { lat: 23.8004, lng: 90.3654, name: "Mirpur 1, Dhaka" },
+                "mirpur 2": { lat: 23.8074, lng: 90.3600, name: "Mirpur 2, Dhaka" },
+                "mirpur 6": { lat: 23.8187, lng: 90.3611, name: "Mirpur 6, Dhaka" },
+                "mirpur 10": { lat: 23.8223, lng: 90.3698, name: "Mirpur 10, Dhaka" },
+                "mirpur 11": { lat: 23.8280, lng: 90.3750, name: "Mirpur 11, Dhaka" },
+                "mirpur 12": { lat: 23.8330, lng: 90.3820, name: "Mirpur 12, Dhaka" },
+                "mirpur 13": { lat: 23.8350, lng: 90.3880, name: "Mirpur 13, Dhaka" },
+                "mirpur 14": { lat: 23.8380, lng: 90.3950, name: "Mirpur 14, Dhaka" },
+                // ... and all other locations from above
+            };
+            
+            // Check if the location exists in our predefined list
+            for (const [key, location] of Object.entries(detailedLocations)) {
+                if (lowercaseQuery.includes(key)) {
+                    foundLocation = location;
+                    break;
+                }
+            }
+            
+            // If we found a specific location
+            if (foundLocation) {
+                // Center map on the found location
+                map.setView([foundLocation.lat, foundLocation.lng], 15);
+                
+                // Create a temporary marker for the searched location
+                const searchMarker = L.marker([foundLocation.lat, foundLocation.lng]).addTo(map);
+                searchMarker.bindPopup(`<b>${foundLocation.name}</b>`).openPopup();
+                
+                // Generate random parking locations around the searched location
+                const nearbyParkingLocations = generateNearbyParkingLocations(foundLocation.lat, foundLocation.lng, 5);
+                
+                // Add markers for the nearby parking locations
+                addParkingMarkers(nearbyParkingLocations);
+                
+                // Remove the search marker after a short delay
+                setTimeout(() => {
+                    map.removeLayer(searchMarker);
+                }, 3000);
+            } else {
+                // Fallback for general areas
+                const generalLocations = {
+                    "mirpur": { lat: 23.8223, lng: 90.3654, name: "Mirpur, Dhaka" },
+                    "gulshan": { lat: 23.7925, lng: 90.4078, name: "Gulshan, Dhaka" },
+                    "dhanmondi": { lat: 23.7461, lng: 90.3742, name: "Dhanmondi, Dhaka" },
+                    "uttara": { lat: 23.8759, lng: 90.3795, name: "Uttara, Dhaka" },
+                    "banani": { lat: 23.7937, lng: 90.4066, name: "Banani, Dhaka" },
+                    "mohammadpur": { lat: 23.7578, lng: 90.3595, name: "Mohammadpur, Dhaka" },
+                    "chittagong": { lat: 22.3569, lng: 91.7832, name: "Chittagong" },
+                    "sylhet": { lat: 24.8949, lng: 91.8687, name: "Sylhet" },
+                    "khulna": { lat: 22.8456, lng: 89.5403, name: "Khulna" },
+                    "rajshahi": { lat: 24.3745, lng: 88.6042, name: "Rajshahi" },
+                    "barisal": { lat: 22.7010, lng: 90.3535, name: "Barisal" },
+                    "rangpur": { lat: 25.7439, lng: 89.2752, name: "Rangpur" }
+                };
+                
+                // Check general locations
+                for (const [key, location] of Object.entries(generalLocations)) {
+                    if (lowercaseQuery.includes(key)) {
+                        foundLocation = location;
+                        break;
+                    }
+                }
+                
+                if (foundLocation) {
+                    // Center map on the found location
+                    map.setView([foundLocation.lat, foundLocation.lng], 13);
+                    
+                    // Create a temporary marker for the searched location
+                    const searchMarker = L.marker([foundLocation.lat, foundLocation.lng]).addTo(map);
+                    searchMarker.bindPopup(`<b>${foundLocation.name}</b>`).openPopup();
+                    
+                    // Generate random parking locations around the searched location
+                    const nearbyParkingLocations = generateNearbyParkingLocations(foundLocation.lat, foundLocation.lng, 5);
+                    
+                    // Add markers for the nearby parking locations
+                    addParkingMarkers(nearbyParkingLocations);
+                    
+                    // Remove the search marker after a short delay
+                    setTimeout(() => {
+                        map.removeLayer(searchMarker);
+                    }, 3000);
+                } else {
+                    // Location not found
+                    alert('Location not found. Please try a different search term or select from the suggestions.');
+                }
+            }
+        }
+        
+        function generateNearbyParkingLocations(lat, lng, count) {
+            const locations = [];
+            const parkingNames = [
+                "Central Parking",
+                "City Garage",
+                "Metro Parking",
+                "Urban Park",
+                "Plaza Parking",
+                "Grand Parking",
+                "Premium Parking",
+                "Secure Parking",
+                "Easy Park",
+                "Smart Parking"
+            ];
+            
+            for (let i = 0; i < count; i++) {
+                // Generate random offset (within ~500m)
+                const latOffset = (Math.random() - 0.5) * 0.01;
+                const lngOffset = (Math.random() - 0.5) * 0.01;
+                
+                // Generate random parking data
+                const spaces = Math.floor(Math.random() * 300) + 50;
+                const available = Math.floor(Math.random() * spaces);
+                const price = `৳${Math.floor(Math.random() * 100) + 20}/hr`;
+                
+                locations.push({
+                    name: parkingNames[i % parkingNames.length],
+                    lat: lat + latOffset,
+                    lng: lng + lngOffset,
+                    spaces: spaces,
+                    available: available,
+                    price: price
+                });
+            }
+            
+            return locations;
+        }
+        
+        // Mobile menu toggle
+        document.querySelector('.md\\:hidden').addEventListener('click', function() {
+            // Mobile menu functionality would go here
+            alert('Mobile menu clicked');
+        });
+    </script>
+</body>
+</html>
